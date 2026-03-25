@@ -30,6 +30,23 @@ function OficiosPage() {
   const [selectedSalidaTramo, setSelectedSalidaTramo] = useState<string>('all')
   const [selectedTableScope, setSelectedTableScope] = useState<'all' | 'entrada' | 'salida'>('all')
 
+  function handleEntradaTramoChange(value: string | null) {
+    setSelectedEntradaTramo(value ?? 'all')
+  }
+
+  function handleSalidaTramoChange(value: string | null) {
+    setSelectedSalidaTramo(value ?? 'all')
+  }
+
+  function handleTableScopeChange(value: string | null) {
+    if (value === 'entrada' || value === 'salida') {
+      setSelectedTableScope(value)
+      return
+    }
+
+    setSelectedTableScope('all')
+  }
+
   const { data: entradaTramosData } = useQuery({
     queryKey: ['documents', 'oficios', 'tramos', 'entrada', OFICIOS_FOLDER_URL],
     queryFn: () => getFolderChildFolders(OFICIOS_FOLDER_URL),
@@ -155,7 +172,7 @@ function OficiosPage() {
           title="Oficios de entrada por Estatus"
           data={entradaStatusData?.distribution ?? []}
           headerContent={
-            <Select value={selectedEntradaTramo} onValueChange={setSelectedEntradaTramo}>
+            <Select value={selectedEntradaTramo} onValueChange={handleEntradaTramoChange}>
               <SelectTrigger size="sm" className="w-[380px] max-w-full">
                 <SelectValue placeholder="Selecciona un tramo">
                   {selectedEntradaTramo === 'all' ? 'Todos los tramos' : selectedEntradaTramo}
@@ -176,7 +193,7 @@ function OficiosPage() {
           title="Oficios de salida por Estatus"
           data={salidaStatusData?.distribution ?? []}
           headerContent={
-            <Select value={selectedSalidaTramo} onValueChange={setSelectedSalidaTramo}>
+            <Select value={selectedSalidaTramo} onValueChange={handleSalidaTramoChange}>
               <SelectTrigger size="sm" className="w-[380px] max-w-full">
                 <SelectValue placeholder="Selecciona un tramo">
                   {selectedSalidaTramo === 'all' ? 'Todos los tramos' : selectedSalidaTramo}
@@ -201,7 +218,7 @@ function OficiosPage() {
             <CardTitle className="text-sm font-medium">Detalle de Oficios</CardTitle>
             <span className="shrink-0 text-xs text-muted-foreground">{tableRows.length} documentos</span>
           </div>
-          <Select value={selectedTableScope} onValueChange={(value) => setSelectedTableScope(value as 'all' | 'entrada' | 'salida')}>
+          <Select value={selectedTableScope} onValueChange={handleTableScopeChange}>
             <SelectTrigger size="sm" className="w-[240px] max-w-full">
               <SelectValue>
                 {selectedTableScope === 'all'

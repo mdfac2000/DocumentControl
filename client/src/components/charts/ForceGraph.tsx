@@ -50,15 +50,6 @@ interface Props {
 // Single color for all person nodes
 const PERSON_COLOR = '#3b82f6' // blue
 
-const STATUS_COLORS: Record<string, string> = {
-  draft: '#94a3b8',
-  open: '#f59e0b',
-  pending: '#f97316',
-  in_review: '#8b5cf6',
-  closed: '#22c55e',
-  void: '#64748b',
-}
-
 // Issue node outline colors (varied)
 const ISSUE_OUTLINE_PALETTE = [
   '#f97316', // orange
@@ -170,7 +161,7 @@ export default function ForceGraph({ issues, users, issueTypes }: Props) {
     }
 
     for (const issue of issues) {
-      const rawIssue = issue as Record<string, unknown>
+      const rawIssue = issue as unknown as Record<string, unknown>
 
       addHint(
         issue.assignedTo,
@@ -485,7 +476,13 @@ export default function ForceGraph({ issues, users, issueTypes }: Props) {
       )
       .force('charge', forceManyBody().strength(-150))
       .force('center', forceCenter(0, 0))
-      .force('collide', forceCollide().radius((d: GraphNode) => (d.type === 'person' ? 30 : 10)))
+      .force(
+        'collide',
+        forceCollide().radius((node) => {
+          const d = node as GraphNode
+          return d.type === 'person' ? 30 : 10
+        })
+      )
 
     // Helper: get person color
     function getPersonColor(_d: GraphNode): string {

@@ -202,8 +202,7 @@ function UserMenu() {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="h-12 w-full min-w-0 overflow-hidden">
+          <DropdownMenuTrigger render={<SidebarMenuButton className="h-12 w-full min-w-0 overflow-hidden" />}>
               <Avatar className="h-8 w-8 shrink-0">
                 <AvatarImage src={user?.profileImages?.sizeX40} />
                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
@@ -217,7 +216,6 @@ function UserMenu() {
                 </span>
               </div>
               <ChevronsUpDown className="ml-2 size-4 shrink-0 text-muted-foreground" />
-            </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="w-56">
             <div className="px-2 py-1.5">
