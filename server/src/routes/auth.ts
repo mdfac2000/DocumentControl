@@ -27,6 +27,14 @@ const REFRESH_COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 3600 * 1000, // 7 days
 }
 
+function getClientOrigin(req: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return `${req.protocol}://${req.get('host')}`
+  }
+
+  return CLIENT_ORIGIN
+}
+
 // GET /api/auth/login — redirect user to Autodesk OAuth
 router.get('/login', (_req: Request, res: Response) => {
   const params = new URLSearchParams({
@@ -41,6 +49,7 @@ router.get('/login', (_req: Request, res: Response) => {
 // GET /api/auth/callback — exchange code for tokens
 router.get('/callback', async (req: Request, res: Response) => {
   const { code } = req.query
+  const clientOrigin = getClientOrigin(req)
 
   if (!code || typeof code !== 'string') {
     res.status(400).json({ error: 'Missing authorization code' })
@@ -63,10 +72,10 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     res.cookie('access_token', data.access_token, COOKIE_OPTIONS)
     res.cookie('refresh_token', data.refresh_token, REFRESH_COOKIE_OPTIONS)
-    res.redirect(CLIENT_ORIGIN)
+    res.redirect(clientOrigin)
   } catch (err) {
     console.error('Token exchange error:', err)
-    res.redirect(`${CLIENT_ORIGIN}/login?error=auth_failed`)
+    res.redirect(`${clientOrigin}/login?error=auth_failed`)
   }
 })
 
