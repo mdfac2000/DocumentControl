@@ -1,119 +1,68 @@
+import { getFolderChildFolders, getFolderDocumentsSummary, getFolderDocumentsTable } from '@/api/documents'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { ClipboardList } from 'lucide-react'
+import { useState } from 'react'
+
+// URL de las minutas por tramo
+const MINUTAS_FOLDER_URL = 'https://acc.autodesk.com/docs/files/projects/1fe1347a-35a4-4d0a-b39b-467914a005b1?folderUrn=urn%3Aadsk.wipprod%3Afs.folder%3Aco.kzTFRvAsTrWuNxVU6ge3Nw&viewModel=detail&moduleId=folders';
+
+// URL de las minutas generales
+const MINUTAS_SALIDA_FOLDER_URL = 'https://acc.autodesk.com/docs/files/projects/1fe1347a-35a4-4d0a-b39b-467914a005b1?folderUrn=urn%3Aadsk.wipprod%3Afs.folder%3Aco.GeFZb1M4QEGlKxWuQFb3vA&viewModel=detail&moduleId=folders';
 
 export const Route = createFileRoute('/documents/minutas')({
   component: MinutasPage,
 })
 
 function MinutasPage() {
-  const [selectedEntradaTramo, setSelectedEntradaTramo] = useState<string>('all')
-  const [selectedSalidaTramo, setSelectedSalidaTramo] = useState<string>('all')
-  const [selectedTableScope, setSelectedTableScope] = useState<'all' | 'entrada' | 'salida'>('all')
+  const [selectedEntradaTramo] = useState<string>('all')
+  const [selectedSalidaTramo] = useState<string>('all')
+  const [] = useState<'all' | 'entrada' | 'salida'>('all')
 
-  function handleEntradaTramoChange(value: string | null) {
-    setSelectedEntradaTramo(value ?? 'all')
-  }
 
-  function handleSalidaTramoChange(value: string | null) {
-    setSelectedSalidaTramo(value ?? 'all')
-  }
 
-  function handleTableScopeChange(value: string | null) {
-    if (value === 'entrada' || value === 'salida') {
-      setSelectedTableScope(value)
-      return
-    }
 
-    setSelectedTableScope('all')
-  }
-
-  const { data: entradaTramosData } = useQuery({
+  useQuery({
     queryKey: ['documents', 'minutas', 'tramos', 'entrada', MINUTAS_FOLDER_URL],
     queryFn: () => getFolderChildFolders(MINUTAS_FOLDER_URL),
     staleTime: 10 * 60 * 1000,
   })
 
-  const { data: salidaTramosData } = useQuery({
+  useQuery({
     queryKey: ['documents', 'minutas', 'tramos', 'salida', MINUTAS_SALIDA_FOLDER_URL],
     queryFn: () => getFolderChildFolders(MINUTAS_SALIDA_FOLDER_URL),
     staleTime: 10 * 60 * 1000,
   })
 
-  const entradaTramoOptions = entradaTramosData?.folders ?? []
-  const salidaTramoOptions = salidaTramosData?.folders ?? []
   const entradaTramoFilter = selectedEntradaTramo === 'all' ? undefined : selectedEntradaTramo
   const salidaTramoFilter = selectedSalidaTramo === 'all' ? undefined : selectedSalidaTramo
 
-  const {
-    data: entradaData,
-    isLoading: isEntradaLoading,
-    isError: isEntradaError,
-    error: entradaError,
-  } = useQuery({
+  useQuery({
     queryKey: ['documents', 'minutas', MINUTAS_FOLDER_URL, entradaTramoFilter],
     queryFn: () => getFolderDocumentsSummary(MINUTAS_FOLDER_URL, entradaTramoFilter),
     staleTime: 5 * 60 * 1000,
   })
 
-  const {
-    data: salidaData,
-    isLoading: isSalidaLoading,
-    isError: isSalidaError,
-    error: salidaError,
-  } = useQuery({
+  useQuery({
     queryKey: ['documents', 'minutas', 'salida', MINUTAS_SALIDA_FOLDER_URL, salidaTramoFilter],
     queryFn: () => getFolderDocumentsSummary(MINUTAS_SALIDA_FOLDER_URL, salidaTramoFilter),
     staleTime: 5 * 60 * 1000,
   })
 
-  const {
-    data: entradaStatusData,
-    isError: isEntradaStatusError,
-    error: entradaStatusError,
-  } = useQuery({
-    queryKey: ['documents', 'minutas', 'entrada-status', MINUTAS_FOLDER_URL, STATUS_FIELD_NAME, entradaTramoFilter],
-    queryFn: () => getFolderStatusDistribution(MINUTAS_FOLDER_URL, STATUS_FIELD_NAME, entradaTramoFilter),
-    staleTime: 5 * 60 * 1000,
-  })
 
-  const {
-    data: salidaStatusData,
-    isError: isSalidaStatusError,
-    error: salidaStatusError,
-  } = useQuery({
-    queryKey: ['documents', 'minutas', 'salida-status', MINUTAS_SALIDA_FOLDER_URL, STATUS_FIELD_NAME, salidaTramoFilter],
-    queryFn: () => getFolderStatusDistribution(MINUTAS_SALIDA_FOLDER_URL, STATUS_FIELD_NAME, salidaTramoFilter),
-    staleTime: 5 * 60 * 1000,
-  })
 
-  const { data: entradaTableData, isLoading: isEntradaTableLoading } = useQuery({
+  useQuery({
     queryKey: ['documents', 'minutas', 'entrada-table', MINUTAS_FOLDER_URL, entradaTramoFilter],
     queryFn: () => getFolderDocumentsTable(MINUTAS_FOLDER_URL, entradaTramoFilter),
     staleTime: 5 * 60 * 1000,
   })
 
-  const { data: salidaTableData, isLoading: isSalidaTableLoading } = useQuery({
+  useQuery({
     queryKey: ['documents', 'minutas', 'salida-table', MINUTAS_SALIDA_FOLDER_URL, salidaTramoFilter],
     queryFn: () => getFolderDocumentsTable(MINUTAS_SALIDA_FOLDER_URL, salidaTramoFilter),
     staleTime: 5 * 60 * 1000,
   })
 
-  const hasError = isEntradaError || isSalidaError || isEntradaStatusError || isSalidaStatusError
-  const combinedError = entradaError ?? salidaError ?? entradaStatusError ?? salidaStatusError
-  const tableRows = (() => {
-    if (selectedTableScope === 'entrada') {
-      return entradaTableData?.rows ?? []
-    }
-
-    if (selectedTableScope === 'salida') {
-      return salidaTableData?.rows ?? []
-    }
-
-    return [
-      ...(entradaTableData?.rows ?? []),
-      ...(salidaTableData?.rows ?? []),
-    ]
-  })()
 
   return (
     <div className="space-y-6">
