@@ -6,6 +6,7 @@ import path from 'path'
 import { existsSync } from 'fs'
 import authRouter from './routes/auth'
 import accRouter from './routes/acc'
+import accPmRouter from './routes/acc-pm'
 
 dotenv.config()
 
@@ -35,6 +36,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRouter)
 app.use('/api/acc', accRouter)
+app.use('/api/acc', accPmRouter)
 
 if (isProduction && existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath))
